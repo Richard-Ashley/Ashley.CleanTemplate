@@ -84,6 +84,26 @@ public class OrderTests
     }
 
     [Fact]
+    public void TotalAmount_IsRecalculatedOnEveryItemChange()
+    {
+        var order = Order.CreateDraft("x@y.com", "USD");
+
+        order.TotalAmount.Should().Be(0m);
+
+        order.AddItem("Widget", 2, Usd(10m));
+        order.TotalAmount.Should().Be(20m);
+
+        order.AddItem("Gadget", 1, Usd(5m));
+        order.TotalAmount.Should().Be(25m);
+
+        order.ChangeItemQuantity(order.Items[0].Id, 5);
+        order.TotalAmount.Should().Be(55m);
+
+        order.RemoveItem(order.Items[1].Id);
+        order.TotalAmount.Should().Be(50m);
+    }
+
+    [Fact]
     public void Place_WithItems_TransitionsToPlaced()
     {
         var order = Order.CreateDraft("customer@example.com", "USD");

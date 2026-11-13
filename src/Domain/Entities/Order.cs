@@ -16,12 +16,11 @@ public sealed class Order : Entity
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? PlacedAt { get; private set; }
 
+    public decimal TotalAmount { get; private set; }
+
     public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
 
-    public Money Total =>
-        _items.Aggregate(
-            Money.Zero(Currency),
-            (sum, item) => sum.Add(item.LineTotal));
+    public Money Total => Money.Create(TotalAmount, Currency);
 
     private Order() { }
 
@@ -42,7 +41,8 @@ public sealed class Order : Entity
             CustomerEmail = customerEmail.Trim().ToLowerInvariant(),
             Currency = currency.ToUpperInvariant(),
             Status = OrderStatus.Draft,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            TotalAmount = 0m
         };
     }
 
@@ -55,6 +55,7 @@ public sealed class Order : Entity
                 $"Item currency {unitPrice.Currency} does not match order currency {Currency}.");
 
         _items.Add(OrderItem.Create(productName, quantity, unitPrice));
+        RecalculateTotal();
     }
 
     public void RemoveItem(Guid itemId)
@@ -65,6 +66,7 @@ public sealed class Order : Entity
             ?? throw new DomainException($"Item {itemId} not found in order.");
 
         _items.Remove(item);
+        RecalculateTotal();
     }
 
     public void ChangeItemQuantity(Guid itemId, int newQuantity)
@@ -75,6 +77,7 @@ public sealed class Order : Entity
             ?? throw new DomainException($"Item {itemId} not found in order.");
 
         item.ChangeQuantity(newQuantity);
+        RecalculateTotal();
     }
 
     public void Place()
@@ -90,7 +93,7 @@ public sealed class Order : Entity
         RaiseDomainEvent(new OrderPlacedEvent(
             Id,
             CustomerEmail,
-            Total.Amount,
+            TotalAmount,
             Currency));
     }
 
@@ -115,5 +118,10 @@ public sealed class Order : Entity
         if (Status != OrderStatus.Draft)
             throw new DomainException(
                 $"This operation is only allowed on draft orders. Current status: {Status}.");
+    }
+
+    private void RecalculateTotal()
+    {
+        TotalAmount = _items.Sum(i => i.UnitPrice.Amount * i.Quantity);
     }
 }
