@@ -35,6 +35,20 @@ public class OrderTests
     }
 
     [Fact]
+    public void CreateDraft_WithMalformedEmailThatContainsAt_StillCreatesOrder()
+    {
+        // Documents an intentional asymmetry: the Domain only checks for '@',
+        // while the Application-layer FluentValidation uses full RFC-style EmailAddress validation.
+        // The Domain's check is defense-in-depth for code paths that bypass the pipeline
+        // (background jobs, direct handler calls, tests). The stricter format check lives at the API boundary.
+
+        var order = Order.CreateDraft("not-really-an-email@butstillpasses", "USD");
+
+        order.Should().NotBeNull();
+        order.CustomerEmail.Should().Be("not-really-an-email@butstillpasses");
+    }
+
+    [Fact]
     public void AddItem_ToDraft_AddsToItems()
     {
         var order = Order.CreateDraft("customer@example.com", "USD");
