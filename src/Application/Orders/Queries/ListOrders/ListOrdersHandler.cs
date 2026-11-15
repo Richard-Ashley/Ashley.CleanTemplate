@@ -17,14 +17,13 @@ public sealed class ListOrdersHandler : IRequestHandler<ListOrdersQuery, IReadOn
     {
         return await _db.Orders
             .AsNoTracking()
-            .Include(o => o.Items)
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new OrderSummaryDto(
                 o.Id,
                 o.CustomerEmail,
                 o.Status.ToString(),
                 o.CreatedAt,
-                o.Items.Sum(i => i.UnitPrice.Amount * i.Quantity),
+                o.TotalAmount,
                 o.Currency,
                 o.Items.Count))
             .ToListAsync(cancellationToken);

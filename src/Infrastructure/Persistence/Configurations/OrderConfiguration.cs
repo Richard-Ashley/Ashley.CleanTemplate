@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infrastructure.Persistence.Configurations;
 
@@ -26,9 +27,13 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasConversion<string>()
             .HasMaxLength(20);
 
-        builder.Property(o => o.CreatedAt).IsRequired();
+        // SQLite cannot ORDER BY a DateTimeOffset stored as TEXT. Store as a sortable long instead.
+        builder.Property(o => o.CreatedAt)
+            .IsRequired()
+            .HasConversion(new DateTimeOffsetToBinaryConverter());
 
-        builder.Property(o => o.PlacedAt);
+        builder.Property(o => o.PlacedAt)
+            .HasConversion(new DateTimeOffsetToBinaryConverter());
 
         builder.Property(o => o.TotalAmount)
             .IsRequired()
