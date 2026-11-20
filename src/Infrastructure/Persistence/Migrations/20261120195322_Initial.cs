@@ -19,8 +19,8 @@ namespace Infrastructure.Persistence.Migrations
                     CustomerEmail = table.Column<string>(type: "TEXT", maxLength: 320, nullable: false),
                     Currency = table.Column<string>(type: "TEXT", fixedLength: true, maxLength: 3, nullable: false),
                     Status = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    PlacedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: false),
+                    PlacedAt = table.Column<long>(type: "INTEGER", nullable: true),
                     TotalAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
