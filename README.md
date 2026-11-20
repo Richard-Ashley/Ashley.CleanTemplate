@@ -2,6 +2,7 @@
 
 > A .NET 10 Clean Architecture template with DDD, CQRS, EF Core, and comprehensive testing.
 
+[![CI](https://github.com/Richard-Ashley/Ashley.CleanTemplate/actions/workflows/ci.yml/badge.svg)](https://github.com/Richard-Ashley/Ashley.CleanTemplate/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![.NET](https://img.shields.io/badge/.NET-10.0-purple)](https://dotnet.microsoft.com/)
 [![Tests](https://img.shields.io/badge/tests-65%20passing-brightgreen)](#testing)
@@ -209,8 +210,7 @@ Ashley.CleanTemplate/
 │   │   ├── ValueObjects/               # Money
 │   │   ├── Events/                     # OrderPlacedEvent
 │   │   ├── Enums/                      # OrderStatus
-│   │   ├── Exceptions/                 # DomainException
-│   │   └── Repositories/               # IOrderRepository (defined, currently unused)
+│   │   └── Exceptions/                 # DomainException
 │   │
 │   ├── Application/                    # Use cases and orchestration
 │   │   ├── Common/
@@ -263,8 +263,6 @@ These are the non-obvious choices, with their trade-offs.
 **The decision.** The Application layer's abstraction is `IApplicationDbContext`, which exposes `DbSet<Order>` directly. Handlers write LINQ against it.
 
 **The reasoning.** EF Core's `DbContext` already implements the repository and unit-of-work patterns. Wrapping it in another repository interface adds code without adding much abstraction, and a repository tends to grow one method per query shape. The trade-off is that Application takes a dependency on `Microsoft.EntityFrameworkCore`.
-
-**A loose end.** `Domain/Repositories/IOrderRepository.cs` is a leftover from an earlier design: it is defined but nothing implements or uses it. It is kept here as the shape a repository-based variant would take, and can be deleted without affecting anything.
 
 **When to use repositories anyway.** If your team wants to keep LINQ out of handlers, needs to mock the data layer heavily, or may replace EF Core entirely, a repository interface pays off.
 
@@ -465,7 +463,6 @@ dotnet ef database update \
 - Domain events are raised by the aggregate but nothing dispatches them yet.
 - The `DbUpdateConcurrencyException` → 409 mapping exists but has no test.
 - Malformed JSON bodies are rejected by ASP.NET Core's built-in `[ApiController]` handling, not by `ExceptionMiddleware`, so their response shape is the framework's default.
-- `IOrderRepository` is defined in the Domain layer but unused.
 
 ---
 
